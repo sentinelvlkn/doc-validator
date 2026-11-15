@@ -16,7 +16,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-
 @dataclass
 class ValidationContext:
     """Контекст на една заявка за валидация.
@@ -24,31 +23,32 @@ class ValidationContext:
     Обектът се създава веднъж в началото на веригата и се подава на
     всеки :class:`Handler`. Всеки handler може да го обогати (напр. да
     зададе ``document`` или ``file_format``) или да добави грешка.
-
-    Attributes:
-        filename: Пътят до файла, който се валидира (вход от
-            потребителя).
-        raw_data: Суровите данни, прочетени от парсера (``dict`` или
-            ``list[dict]``). Попълва се от ``ParseHandler``.
-        file_format: ``"json"`` или ``"csv"``. Попълва се от
-            ``FormatDetectHandler``.
-        document: Готовият :class:`documents.base.Document`. Попълва се
-            от ``TypeCheckHandler``.
-        errors: Списък със съобщения за грешки. Ако е непразен, веригата
-            спира и резултатът се връща на потребителя.
+    Ако ``errors`` е непразен, веригата спира и резултатът се връща на
+    потребителя.
     """
 
+    #: Пътят до файла, който се валидира (вход от потребителя).
     filename: str
+
+    #: Суровите данни, прочетени от парсера (``dict`` или
+    #: ``list[dict]``). Попълва се от :class:`ParseHandler`.
     raw_data: object = None
+
+    #: ``"json"`` или ``"csv"``. Попълва се от
+    #: :class:`FormatDetectHandler`.
     file_format: str = None
+
+    #: Готовият :class:`documents.base.Document`. Попълва се от
+    #: :class:`TypeCheckHandler`.
     document: object = None
+
+    #: Списък със съобщения за грешки.
     errors: list = field(default_factory=list)
 
     @property
     def ok(self):
         """bool: ``True``, ако до момента няма натрупани грешки."""
         return not self.errors
-
 
 class Handler(ABC):
     """Абстрактен базов клас за handler във веригата.

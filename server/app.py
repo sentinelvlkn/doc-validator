@@ -16,7 +16,12 @@ import tempfile
 
 from werkzeug.exceptions import RequestEntityTooLarge
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, redirect, send_from_directory
+
+DOCS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "docs_html",
+)
 
 from validation_chain import ValidationContext, build_chain
 from visitors.summary_visitor import SummaryVisitor
@@ -168,6 +173,31 @@ def health():
     """
     return jsonify({"status": "ok"})
 
+@app.route("/docs")
+def docs_redirect():
+    """Пренасочва /docs → /docs/ (за да работят относителните линкове)."""
+    return redirect("/docs/")
+
+
+@app.route("/docs/")
+@app.route("/docs/<path:path>")
+def serve_docs(path="index.html"):
+    """Обслужва генерираната Sphinx HTML документация.
+
+    Args:
+        path: Относителен път в документацията.
+
+    Returns:
+        flask.Response: Файлът или 404, ако документацията не е
+        генерирана.
+    """
+    if not os.path.isdir(DOCS_DIR):
+        return jsonify({
+            "error": "Документацията не е генерирана. "
+                     "Изпълни `sphinx-build -b html source build/html` "
+                     "в папка docs/.",
+        }), 404
+    return send_from_directory(DOCS_DIR, path)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
