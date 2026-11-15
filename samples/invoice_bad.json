@@ -1,0 +1,11 @@
+{
+  "type": "invoice",
+  "number": "INVALID-123",
+  "date": "2099-01-01",
+  "supplier": {"name": "ABC Ltd", "vat": "BG123"},
+  "customer": {"name": "XYZ OOD", "vat": "BG987654321"},
+  "items": [
+    {"description": "Лаптоп", "quantity": 2, "unit_price": 1500.00}
+  ],
+  "total": 9999.00
+}

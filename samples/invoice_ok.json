@@ -1,0 +1,12 @@
+{
+  "type": "invoice",
+  "number": "INV-2024-001",
+  "date": "2024-03-15",
+  "supplier": {"name": "ABC Ltd", "vat": "BG123456789"},
+  "customer": {"name": "XYZ OOD", "vat": "BG987654321"},
+  "items": [
+    {"description": "Лаптоп", "quantity": 2, "unit_price": 1500.00},
+    {"description": "Мишка", "quantity": 3, "unit_price": 50.00}
+  ],
+  "total": 3150.00
+}

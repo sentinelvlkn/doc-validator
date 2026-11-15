@@ -1,0 +1,15 @@
+@startuml
+participant Document
+participant Field
+participant ValidationVisitor as V
+
+Document -> V : accept(visitor)
+V -> Document : visit_document(self)
+loop за всяко поле
+  Document -> Field : field.accept(visitor)
+  Field -> V : visit_field(field)
+  V --> Field : (натрупва резултат в себе си)
+end
+V --> Document : списък с грешки
+Document --> Клиент : резултат
+@enduml

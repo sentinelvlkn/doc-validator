@@ -1,0 +1,42 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+abstract class Handler {
+  - _next : Handler
+  + set_next(handler: Handler) : Handler
+  + handle(ctx: ValidationContext) : ValidationContext
+  # _process(ctx: ValidationContext)
+}
+
+class ValidationContext {
+  + filename : str
+  + file_format : str
+  + raw_data : object
+  + document : Document
+  + errors : list
+  + ok : bool
+}
+
+class FileExistsHandler
+class FormatDetectHandler
+class ParseHandler
+class TypeCheckHandler
+class ContentValidateHandler
+
+Handler <|-- FileExistsHandler
+Handler <|-- FormatDetectHandler
+Handler <|-- ParseHandler
+Handler <|-- TypeCheckHandler
+Handler <|-- ContentValidateHandler
+
+Handler o--> Handler : next
+ContentValidateHandler ..> ValidationVisitor : използва
+Handler ..> ValidationContext : обработва
+
+note right of Handler
+  Общата логика handle() е в базовия клас.
+  Конкретните handler-и имплементират само _process().
+end note
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+actor Клиент
+participant "build_chain()" as Chain
+participant FileExistsHandler as H1
+participant FormatDetectHandler as H2
+participant ParseHandler as H3
+participant TypeCheckHandler as H4
+participant ContentValidateHandler as H5
+participant ValidationVisitor as V
+
+Клиент -> Chain : handle(ValidationContext(filename))
+Chain -> H1 : _process(ctx)
+H1 --> Chain : ok / грешка
+alt има грешка
+  Chain --> Клиент : ctx (errors)
+else няма грешка
+  Chain -> H2 : handle(ctx)
+  H2 -> H3 : handle(ctx)
+  H3 -> H4 : handle(ctx)
+  H4 -> H5 : handle(ctx)
+  H5 -> V : visit_document(ctx.document)
+  V --> H5 : errors
+  H5 --> Chain : ctx
+  Chain --> Клиент : ctx
+end
+@enduml
