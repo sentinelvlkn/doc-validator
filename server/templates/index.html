@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Валидатор на документи</title>
+    <style>
+        body { font-family: sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #333; }
+        form { margin: 20px 0; }
+        input[type=text] { width: 400px; padding: 6px; }
+        button { padding: 6px 16px; }
+        .ok   { color: #1a7f37; font-weight: bold; }
+        .fail { color: #b00020; font-weight: bold; }
+        ul    { background: #fee; padding: 12px 12px 12px 30px; border-radius: 4px; }
+        .summary { background: #eef; padding: 12px; border-radius: 4px; margin: 10px 0; }
+        code  { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Валидатор на документи</h1>
+    <p>Въведи път до файл (<code>.json</code> или <code>.csv</code>).</p>
+
+    <form method="post" action="/validate">
+        <input type="text" name="filename"
+               placeholder="samples/invoice_ok.json"
+               value="{{ filename or '' }}" autofocus>
+        <button type="submit">Провери</button>
+    </form>
+
+    {% if error %}
+        <p class="fail">Грешка: {{ error }}</p>
+    {% endif %}
+
+    {% if result %}
+        {% if result.ok %}
+            <p class="ok">✓ Документът е валиден.</p>
+        {% else %}
+            <p class="fail">✗ Документът е невалиден:</p>
+            <ul>
+                {% for e in result.errors %}<li>{{ e }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+        {% if result.summary %}
+            <div class="summary">
+                <strong>Резюме:</strong>
+                тип <code>{{ result.summary.type }}</code>,
+                формат <code>{{ result.summary.format }}</code>,
+                полета: {{ result.summary.fields }},
+                празни: {{ result.summary.empty_fields }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <hr>
+    <p><small>JSON API: <code>POST /validate</code> с
+       <code>{"filename": "samples/invoice_ok.json"}</code></small></p>
+</body>
+</html>
