@@ -1,7 +1,38 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Среди и настройки
+.env
+.env.*
+!.env.example
+
 docs/build/
-*.docx
-*.odt
-*.pdf
+docs/source/_static/custom.css.bak
+
+~$*.docx
+~$*.odt
+~$*.xlsx
+*.tmp
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
