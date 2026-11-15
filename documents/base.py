@@ -76,12 +76,18 @@ class Document(DocumentElement):
             ``"material_request"``).
         fields: Списък от :class:`Field` обекти.
         file_format: Формат на изходния файл (``"json"`` или ``"csv"``).
+        extra_checks: Списък от функции за проверки на ниво цял документ.
+            Всяка функция приема :class:`Document` и връща списък от
+            съобщения за грешки (празен списък при успех). Използва се
+            за кръстосани проверки между полета, например че ``total``
+            е равен на сумата от редовете.
     """
 
-    def __init__(self, doc_type, fields, file_format):
+    def __init__(self, doc_type, fields, file_format, extra_checks=None):
         self.doc_type = doc_type
         self.fields = fields
         self.file_format = file_format
+        self.extra_checks = extra_checks or []
 
     def accept(self, visitor):
         """Делегира обработката на ``visitor.visit_document(self)``.
@@ -93,6 +99,14 @@ class Document(DocumentElement):
             Резултатът от ``visitor.visit_document``.
         """
         return visitor.visit_document(self)
+
+    def as_dict(self):
+        """Връща речник ``{име_на_поле: стойност}`` за всички полета.
+
+        Returns:
+            dict: Речник с всички полета на документа.
+        """
+        return {f.name: f.value for f in self.fields}
 
     def __repr__(self):
         return f"Document({self.doc_type!r}, {len(self.fields)} fields)"
