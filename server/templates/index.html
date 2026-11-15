@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Валидатор на документи</title>
+    <p>Въведи път до файл (<code>.json</code> или <code>.csv</code>) или качи файл от компютъра си.</p>
     <style>
         body { font-family: sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; }
         h1 { color: #333; }
@@ -20,14 +21,22 @@
     <h1>Валидатор на документи</h1>
     <p>Въведи път до файл (<code>.json</code> или <code>.csv</code>).</p>
 
-    <form method="post" action="/validate">
-        <input type="text" name="filename"
-               placeholder="samples/invoice_ok.json"
-               value="{{ filename or '' }}" autofocus>
-        <button type="submit">Провери</button>
-    </form>
+    <h2>По път до файл</h2>
+	<form method="post" action="/validate">
+	    <input type="text" name="filename"
+		   placeholder="samples/invoice_ok.json"
+		   value="{{ filename or '' }}">
+	    <button type="submit">Провери</button>
+	</form>
 
-    {% if error %}
+	<h2>Или качи файл</h2>
+	<form method="post" action="/validate/upload"
+	      enctype="multipart/form-data">
+	    <input type="file" name="file" accept=".json,.csv" required>
+	    <button type="submit">Качи и провери</button>
+	</form>
+
+	{% if error %}
         <p class="fail">Грешка: {{ error }}</p>
     {% endif %}
 

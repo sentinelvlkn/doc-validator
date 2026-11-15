@@ -11,6 +11,10 @@ Flask приложение за валидация на документи.
 (:mod:`chain`), така че сървърът е само тънък слой между HTTP и
 домейн логиката.
 """
+import os
+import tempfile
+
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from flask import Flask, jsonify, render_template, request
 
@@ -19,6 +23,8 @@ from visitors.summary_visitor import SummaryVisitor
 
 app = Flask(__name__)
 
+# Лимит за качване — 1 MB (защита срещу злонамерени файлове)
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
 
 def _validate_file(filename):
     """Изпълнява веригата за валидация върху един файл.
@@ -39,6 +45,22 @@ def _validate_file(filename):
         "summary": summary,
     }
 
+def _respond(result, status=200):
+    """Избира JSON или HTML отговор според ``Accept`` хедъра.
+
+    Браузърите пращат ``Accept: text/html,...`` и получават HTML.
+    API клиенти (curl, requests) пращат ``*/*`` и получават JSON.
+
+    Args:
+        result: Резултат от :func:`_validate_file`.
+        status: HTTP статус код.
+
+    Returns:
+        flask.Response: JSON или HTML отговор.
+    """
+    if "text/html" in request.headers.get("Accept", ""):
+        return render_template("index.html", result=result), status
+    return jsonify(result), status
 
 @app.route("/", methods=["GET"])
 def index():
@@ -77,6 +99,65 @@ def validate():
     return render_template("index.html", filename=filename,
                            result=result)
 
+@app.route("/validate/upload", methods=["POST"])
+def validate_upload():
+    """Валидира качен файл чрез ``multipart/form-data``.
+
+    Приема поле ``file``. Записва файла във временна директория със
+    същото разширение, изпълнява веригата и изтрива временния файл.
+
+    Returns:
+        flask.Response: JSON (за API) или HTML (за браузър) с
+        резултата.
+    """
+    if "file" not in request.files:
+        return _respond(
+            {"ok": False, "errors": ["Липсва поле 'file'"], "summary": None},
+            400,
+        )
+
+    f = request.files["file"]
+    if not f or f.filename == "":
+        return _respond(
+            {"ok": False, "errors": ["Не е избран файл"], "summary": None},
+            400,
+        )
+
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext not in (".json", ".csv"):
+        return _respond(
+            {
+                "ok": False,
+                "errors": [
+                    f"Непозволено разширение: {ext or '(няма)'}. "
+                    "Позволени: .json, .csv"
+                ],
+                "summary": None,
+            },
+            400,
+        )
+
+    fd, tmp_path = tempfile.mkstemp(suffix=ext)
+    os.close(fd)
+    try:
+        f.save(tmp_path)
+        result = _validate_file(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+    return _respond(result)
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_too_large(e):
+    """Връща ясно съобщение при превишен размер на файла."""
+    return jsonify({
+        "ok": False,
+        "errors": ["Файлът е твърде голям (макс. 1 MB)"],
+        "summary": None,
+    }), 413
 
 @app.route("/health", methods=["GET"])
 def health():
